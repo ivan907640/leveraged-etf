@@ -1,0 +1,129 @@
+{
+  "etfs": [
+    {
+      "ticker": "TQQQ",
+      "benchmark": "^NDX",
+      "benchmark_name": "Nasdaq-100 Index",
+      "leverage": 3,
+      "region": "us_nasdaq100",
+      "region_name": "Nasdaq-100",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "SQQQ",
+      "benchmark": "^NDX",
+      "benchmark_name": "Nasdaq-100 Index",
+      "leverage": -3,
+      "region": "us_nasdaq100",
+      "region_name": "Nasdaq-100",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "QLD",
+      "benchmark": "^NDX",
+      "benchmark_name": "Nasdaq-100 Index",
+      "leverage": 2,
+      "region": "us_nasdaq100",
+      "region_name": "Nasdaq-100",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "QID",
+      "benchmark": "^NDX",
+      "benchmark_name": "Nasdaq-100 Index",
+      "leverage": -2,
+      "region": "us_nasdaq100",
+      "region_name": "Nasdaq-100",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "UPRO",
+      "benchmark": "^GSPC",
+      "benchmark_name": "S&P 500 Index",
+      "leverage": 3,
+      "region": "us_sp500",
+      "region_name": "S&P 500",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "SPXU",
+      "benchmark": "^GSPC",
+      "benchmark_name": "S&P 500 Index",
+      "leverage": -3,
+      "region": "us_sp500",
+      "region_name": "S&P 500",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "SSO",
+      "benchmark": "^GSPC",
+      "benchmark_name": "S&P 500 Index",
+      "leverage": 2,
+      "region": "us_sp500",
+      "region_name": "S&P 500",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "SDS",
+      "benchmark": "^GSPC",
+      "benchmark_name": "S&P 500 Index",
+      "leverage": -2,
+      "region": "us_sp500",
+      "region_name": "S&P 500",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "WLDU",
+      "benchmark": "VT",
+      "benchmark_name": "Vanguard Total World Stock ETF",
+      "leverage": 2,
+      "region": "global_equity",
+      "region_name": "Global Equity",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    },
+    {
+      "ticker": "00631L.TW",
+      "display_ticker": "00631L",
+      "benchmark": "^TW50",
+      "benchmark_name": "FTSE TWSE Taiwan 50 Index",
+      "leverage": 2,
+      "region": "taiwan_50",
+      "region_name": "Taiwan 50",
+      "currency": "TWD",
+      "currency_symbol": "NT$",
+      "rate_source": "TWD_INTERBANK_OVERNIGHT"
+    },
+    {
+      "ticker": "TSLR",
+      "benchmark": "TSLA",
+      "benchmark_name": "Tesla, Inc.",
+      "leverage": 2,
+      "region": "single_stock",
+      "region_name": "Single Stock",
+      "currency": "USD",
+      "currency_symbol": "$",
+      "rate_source": "SOFR_BLENDED"
+    }
+  ],
+  "rate_source": "SOFR_BLENDED",
+  "data_basis": "etf_adjusted_close_index_close",
+  "default_window_days": 365
+}

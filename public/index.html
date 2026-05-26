@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0c10" />
+  <title>Leveraged ETF · Tracking & Leverage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="./vendor/flatpickr/flatpickr.min.css" />
+  <link rel="stylesheet" href="./vendor/flatpickr/themes/dark.css" />
+  <link rel="stylesheet" href="./styles.css?v=20260512k" />
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" defer></script>
+  <script src="./vendor/flatpickr/flatpickr.min.js" defer></script>
+  <script src="./app.js?v=20260512k" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-row">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-text">
+          <h1 data-i18n="brand_title">Leveraged ETF</h1>
+          <span class="brand-sub" data-i18n="brand_subtitle">Tracking &amp; Leverage Analytics</span>
+        </div>
+      </div>
+      <div class="header-meta" id="header-meta"></div>
+      <div class="language-switch">
+        <label for="language-select" data-i18n="lang_label">Language</label>
+        <select id="language-select">
+          <option value="en">English</option>
+          <option value="zh-Hant">Chinese</option>
+        </select>
+      </div>
+    </div>
+    <p class="subtitle" id="subtitle" data-i18n="loading">Loading…</p>
+  </header>
+
+  <section class="controls" aria-label="View controls" data-i18n-aria="controls_aria">
+    <div class="control">
+      <label for="ticker-select" data-i18n="control_etf">ETF</label>
+      <select id="ticker-select"></select>
+    </div>
+    <div class="control control-range">
+      <label data-i18n="control_range">Time range</label>
+      <div class="range-presets" id="range-presets" role="group" aria-label="Time range presets" data-i18n-aria="range_presets_aria">
+        <button type="button" data-range="1m">1M</button>
+        <button type="button" data-range="3m">3M</button>
+        <button type="button" data-range="6m">6M</button>
+        <button type="button" data-range="ytd">YTD</button>
+        <button type="button" data-range="1y">1Y</button>
+        <button type="button" data-range="3y">3Y</button>
+        <button type="button" data-range="5y">5Y</button>
+        <button type="button" data-range="10y">10Y</button>
+        <button type="button" data-range="max" class="active">Max</button>
+        <button type="button" data-range="custom">Custom</button>
+      </div>
+    </div>
+    <div class="control control-dates">
+      <label for="date-range" data-i18n="control_dates">Dates</label>
+      <div class="date-range-wrap">
+        <input id="date-start" type="text" placeholder="Start date" data-i18n-placeholder="date_start_placeholder" readonly />
+        <span data-i18n="date_to">to</span>
+        <input id="date-end" type="text" placeholder="End date" data-i18n-placeholder="date_end_placeholder" readonly />
+      </div>
+    </div>
+    <div class="control control-comparison">
+      <label>
+        <span data-i18n="control_benchmark_settings">Leverage benchmark</span>
+        <button type="button" class="info-btn" data-tip="benchmark-model" aria-label="Explain benchmark model" data-i18n-aria="explain_benchmark_model">?</button>
+      </label>
+      <div class="scenario-controls" data-i18n-aria="benchmark_model_aria" aria-label="Benchmark model">
+        <div class="mini-control benchmark-period">
+          <label for="reset-frequency" data-i18n="rebalance_period">Rebalance period</label>
+          <select id="reset-frequency" aria-label="Reset frequency" data-i18n-aria="reset_frequency_aria">
+            <option value="none">Never</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="semiannual">Half-year</option>
+            <option value="annual">Annual</option>
+          </select>
+        </div>
+        <div class="mini-control benchmark-band">
+          <label data-i18n="rebalance_band">Rebalance band</label>
+          <div class="band-inputs">
+            <input id="band-lower" type="number" min="0.1" step="0.1" placeholder="Lower band" data-i18n-placeholder="band_lower_placeholder" />
+            <span data-i18n="band_to">to</span>
+            <input id="band-upper" type="number" min="0.1" step="0.1" placeholder="Upper band" data-i18n-placeholder="band_upper_placeholder" />
+          </div>
+        </div>
+        <div class="mini-control benchmark-cost">
+          <label for="leverage-cost-spread" data-i18n="leverage_cost">Leverage cost</label>
+          <div class="cost-input">
+            <span data-i18n="benchmark_rate_plus">Benchmark rate +</span>
+            <input id="leverage-cost-spread" type="number" step="0.1" value="0" />
+            <span>%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cards-stack">
+    <div class="cards-group">
+      <div class="cards-heading" data-i18n="section_performance">Performance</div>
+      <div class="cards cards-values" id="summary-cards-values"></div>
+    </div>
+    <div class="cards-group comparison-group">
+      <div class="cards-heading" data-i18n="section_comparison">Comparison</div>
+      <div class="cards cards-comparison" id="summary-cards-comparison"></div>
+    </div>
+    <div class="cards-group">
+      <div class="cards-heading" data-i18n="section_cost">Tracking vs model</div>
+      <div class="cards cards-costs" id="summary-cards-costs"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">
+          <h2 data-i18n="paths_title">$100 invested over selected range</h2>
+        <button type="button" class="info-btn" data-tip="paths" aria-label="Explain performance paths" data-i18n-aria="explain_paths">?</button>
+      </div>
+      <div class="panel-actions">
+        <div class="seg-toggle" id="scale-toggle" role="group" aria-label="Y-axis scale" data-i18n-aria="scale_aria">
+          <button type="button" data-scale="linear" class="active" data-i18n="scale_linear">Linear</button>
+          <button type="button" data-scale="log" data-i18n="scale_log">Log</button>
+        </div>
+        <button type="button" class="info-btn" data-tip="log" aria-label="Explain log scale" data-i18n-aria="explain_log">?</button>
+      </div>
+    </div>
+    <p class="muted" data-i18n="paths_note">
+      What $100 would be worth across four scenarios: actual ETF, theoretical return before fund costs,
+      configurable leverage benchmark, and the underlying target index.
+    </p>
+    <div id="chart-paths" class="chart"></div>
+  </section>
+
+  <section class="panel-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2 data-i18n="cost_chart_title">Model difference vs financing impact</h2>
+          <button type="button" class="info-btn" data-tip="cost-vs-financing" aria-label="Explain" data-i18n-aria="explain">?</button>
+        </div>
+      </div>
+      <p class="muted" data-i18n="cost_chart_note">Rolling annualized model - ETF difference compared with the estimated financing impact.</p>
+      <div id="chart-cost" class="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2 data-i18n="residual_chart_title">Residual model difference</h2>
+          <button type="button" class="info-btn" data-tip="residual" aria-label="Explain" data-i18n-aria="explain">?</button>
+        </div>
+      </div>
+      <p class="muted" data-i18n="residual_chart_note">Rolling annualized difference after removing the estimated financing impact. This is not a fee line.</p>
+      <div id="chart-residual" class="chart"></div>
+    </div>
+    <div class="panel panel-wide">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2 data-i18n="decomp_chart_title">Where the gap comes from</h2>
+          <button type="button" class="info-btn" data-tip="decomp" aria-label="Explain" data-i18n-aria="explain">?</button>
+        </div>
+      </div>
+      <p class="muted" data-i18n="decomp_chart_note">Tracking gap (actual − theoretical) plus reset compounding / decay equals the total gap.</p>
+      <div id="chart-decomp" class="chart"></div>
+    </div>
+  </section>
+
+  <section class="panel methodology">
+    <div class="panel-head"><h2 data-i18n="methodology_title">Methodology</h2></div>
+    <div class="method-meta" id="methodology-meta"></div>
+    <details open>
+      <summary data-i18n="method_qa_summary">Data, rates, and benchmark Q&A</summary>
+      <div class="qa-list">
+        <div class="qa-item">
+          <strong data-i18n="method_qa_rate_us_q">How is the US cash rate used?</strong>
+          <p data-i18n="method_qa_rate_us_a">US funds use SOFR where available, blended with Fed Funds before SOFR history starts. The daily financing contribution is (leverage - 1) x annual rate x calendar days / 365.</p>
+        </div>
+        <div class="qa-item">
+          <strong data-i18n="method_qa_rate_tw_q">How is the Taiwan cash rate used?</strong>
+          <p data-i18n="method_qa_rate_tw_a">Taiwan funds use the TWD interbank overnight rate with the same financing formula.</p>
+        </div>
+        <div class="qa-item">
+          <strong data-i18n="method_qa_basis_q">What is the daily leverage benchmark basis?</strong>
+          <p data-i18n="method_qa_basis_a">The benchmark daily return is calculated from the official target-index close. The daily leveraged target is leverage x that benchmark daily return.</p>
+        </div>
+        <div class="qa-item">
+          <strong data-i18n="method_qa_price_q">What price is used for the ETF?</strong>
+          <p data-i18n="method_qa_price_a">US ETFs use adjusted close so distributions and splits are reinvested. 00631L uses TWSE official daily close with the 2026 split adjusted, because Yahoo's adjusted history is not reliable for that split.</p>
+        </div>
+        <div class="qa-item">
+          <strong data-i18n="method_qa_theoretical_q">What is theoretical return before fund costs?</strong>
+          <p data-i18n="method_qa_theoretical_a">It compounds the daily leveraged target after the estimated cash-rate contribution, but before expense ratio, swap or futures basis, trading costs, tracking error, and taxes.</p>
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary data-i18n="method_data_summary">ETF adjusted close and target-index close</summary>
+      <p data-i18n="method_data_p1">The ETF side is pulled from adjusted close, so ETF distributions and splits are treated as reinvested into the same fund instead of being mis-classified as tracking drag.</p>
+      <p data-i18n="method_data_p2">The benchmark side uses the official target index close: Nasdaq-100 Index and S&amp;P 500 Index. This is closer to the daily target definition than using QQQ or SPY as benchmark proxies.</p>
+      <p data-i18n="method_data_p3">This is still a pre-tax convention. It does not model dividend withholding tax, income tax, transaction costs from reinvesting ETF dividends, or the timing/cash drag an individual investor may face.</p>
+    </details>
+    <details>
+      <summary data-i18n="method_fluct_summary">Why the model difference fluctuates</summary>
+      <p data-i18n="method_fluct_p1">Daily model difference is leverage × target-index close return − ETF adjusted-close return. The rolling chart annualizes the sum of those daily gaps inside a 365-calendar-day window.</p>
+      <p data-i18n="method_fluct_p2">The line can jump when an extreme market day enters or leaves the rolling window.</p>
+      <p data-i18n="method_fluct_p3">These swings are plausible for leveraged funds because execution timing, NAV calculation, swap/futures basis, market disruption, rebalance cost, and benchmark pricing differences can all be large on volatile days.</p>
+    </details>
+    <details>
+      <summary data-i18n="method_annual_summary">Annualized model differences</summary>
+      <p data-i18n="method_annual_p1">Summary tracking cards use the selected date range. Model - ETF difference annualizes the compounded gap between theoretical and actual returns; financing impact is still summed by calendar day.</p>
+      <p data-i18n="method_annual_p2">The tracking charts still show rolling 365-calendar-day annualized lines so changes over time remain visible.</p>
+    </details>
+    <details>
+      <summary data-i18n="method_tracking_summary">Model - ETF difference</summary>
+      <p data-i18n="method_tracking_p1">Difference between the theoretical return before fund costs and the actual ETF return. Positive means the model return was higher than the ETF; negative means the ETF beat the model.</p>
+    </details>
+    <details>
+      <summary data-i18n="method_decay_summary">Volatility decay / compounding effect</summary>
+      <p data-i18n="method_decay_p1">Daily-resetting leverage compounds differently than less frequent reset rules. In strong trends compounding helps; in choppy or mean-reverting markets it hurts. This is not a fee.</p>
+    </details>
+    <details>
+      <summary data-i18n="method_inverse_summary">Inverse ETFs and log scale</summary>
+      <p data-i18n="method_inverse_p1">Inverse leveraged ETFs can decay toward zero over long uptrends. The paths chart opens on log scale for inverse funds so the move from 100 to tiny values remains visible.</p>
+      <p data-i18n="method_inverse_p2">A synthetic leverage benchmark can go negative if the underlying move is large enough before the next reset; those points are omitted from the path chart because they are not investable account values.</p>
+    </details>
+  </section>
+
+  <div id="info-popover" class="info-popover hidden" role="dialog" aria-live="polite"></div>
+
+  <footer class="footer">
+    <span id="footer-meta"></span>
+  </footer>
+</body>
+</html>

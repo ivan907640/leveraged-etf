@@ -1,0 +1,16 @@
+{
+  "name": "leveraged-etf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "mkdir -p public/vendor/flatpickr/themes && cp node_modules/flatpickr/dist/flatpickr.min.css public/vendor/flatpickr/flatpickr.min.css && cp node_modules/flatpickr/dist/flatpickr.min.js public/vendor/flatpickr/flatpickr.min.js && cp node_modules/flatpickr/dist/themes/dark.css public/vendor/flatpickr/themes/dark.css",
+    "test": "node --check public/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "flatpickr": "^4.6.13"
+  }
+}
