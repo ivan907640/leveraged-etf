@@ -2,7 +2,7 @@
   "metadata": {
     "rate_source": "SOFR_BLENDED",
     "data_basis": "etf_adjusted_close_index_close",
-    "last_updated": "2026-05-30"
+    "last_updated": "2026-05-31"
   },
   "tickers": [
     {
@@ -20,13 +20,13 @@
       "as_of": "2026-05-29",
       "inception": "2010-02-11",
       "rows": 4099,
-      "actual_etf_path": 410.3752939658695,
+      "actual_etf_path": 410.3753236427049,
       "perfect_leveraged_path": 587.8084306688145,
       "benchmark_path": 17.08199390356482,
       "naive_leveraged_path": 49.24598171069445,
       "volatility_decay": 538.5624489581201,
-      "tracking_drag_gap": -177.43313670294498,
-      "actual_vs_naive_gap": 361.129312255175
+      "tracking_drag_gap": -177.43310702610955,
+      "actual_vs_naive_gap": 361.12934193201045
     },
     {
       "ticker": "SQQQ",
@@ -43,13 +43,13 @@
       "as_of": "2026-05-29",
       "inception": "2010-02-11",
       "rows": 4099,
-      "actual_etf_path": 3.991947946914921e-06,
+      "actual_etf_path": 3.991948783871369e-06,
       "perfect_leveraged_path": 2.8570227908581268e-06,
       "benchmark_path": 17.08199390356482,
       "naive_leveraged_path": -47.24598171069445,
       "volatility_decay": 47.245984567717244,
-      "tracking_drag_gap": 1.134925156056794e-06,
-      "actual_vs_naive_gap": 47.2459857026424
+      "tracking_drag_gap": 1.1349259930132426e-06,
+      "actual_vs_naive_gap": 47.24598570264323
     },
     {
       "ticker": "QLD",
@@ -66,13 +66,13 @@
       "as_of": "2026-05-29",
       "inception": "2006-06-21",
       "rows": 5016,
-      "actual_etf_path": 100.12462336996708,
+      "actual_etf_path": 100.12461730117808,
       "perfect_leveraged_path": 135.00437128902752,
       "benchmark_path": 19.276785478787524,
       "naive_leveraged_path": 37.55357095757505,
       "volatility_decay": 97.45080033145247,
-      "tracking_drag_gap": -34.879747919060435,
-      "actual_vs_naive_gap": 62.571052412392035
+      "tracking_drag_gap": -34.87975398784944,
+      "actual_vs_naive_gap": 62.57104634360303
     },
     {
       "ticker": "QID",
@@ -89,13 +89,13 @@
       "as_of": "2026-05-29",
       "inception": "2006-07-13",
       "rows": 5001,
-      "actual_etf_path": 0.00017618980169755027,
+      "actual_etf_path": 0.0001761898191955507,
       "perfect_leveraged_path": 0.00011532938853276283,
       "benchmark_path": 20.520903681673143,
       "naive_leveraged_path": -38.04180736334629,
       "volatility_decay": 38.04192269273482,
-      "tracking_drag_gap": 6.086041316478744e-05,
-      "actual_vs_naive_gap": 38.041983553147986
+      "tracking_drag_gap": 6.0860430662787885e-05,
+      "actual_vs_naive_gap": 38.04198355316548
     },
     {
       "ticker": "UPRO",
@@ -112,13 +112,13 @@
       "as_of": "2026-05-29",
       "inception": "2009-06-25",
       "rows": 4258,
-      "actual_etf_path": 131.7437438137165,
+      "actual_etf_path": 131.74375768317782,
       "perfect_leveraged_path": 120.13361807770885,
       "benchmark_path": 8.236867817959665,
       "naive_leveraged_path": 22.710603453878996,
       "volatility_decay": 97.42301462382986,
-      "tracking_drag_gap": 11.610125736007646,
-      "actual_vs_naive_gap": 109.03314035983749
+      "tracking_drag_gap": 11.610139605468973,
+      "actual_vs_naive_gap": 109.03315422929882
     },
     {
       "ticker": "SPXU",
@@ -135,13 +135,13 @@
       "as_of": "2026-05-29",
       "inception": "2009-06-25",
       "rows": 4258,
-      "actual_etf_path": 7.862877157557301e-05,
+      "actual_etf_path": 7.862876094836822e-05,
       "perfect_leveraged_path": 8.668204835420284e-05,
       "benchmark_path": 8.236867817959665,
       "naive_leveraged_path": -20.710603453878996,
       "volatility_decay": 20.71069013592735,
-      "tracking_drag_gap": -8.053276778629826e-06,
-      "actual_vs_naive_gap": 20.71068208265057
+      "tracking_drag_gap": -8.053287405834618e-06,
+      "actual_vs_naive_gap": 20.710682082639945
     },
     {
       "ticker": "SSO",
@@ -158,13 +158,13 @@
       "as_of": "2026-05-29",
       "inception": "2006-06-21",
       "rows": 5016,
-      "actual_etf_path": 19.023011279488298,
+      "actual_etf_path": 19.023018734362573,
       "perfect_leveraged_path": 16.982042321774703,
       "benchmark_path": 6.053394309351185,
       "naive_leveraged_path": 11.10678861870237,
       "volatility_decay": 5.8752537030723335,
-      "tracking_drag_gap": 2.040968957713595,
-      "actual_vs_naive_gap": 7.9162226607859285
+      "tracking_drag_gap": 2.04097641258787,
+      "actual_vs_naive_gap": 7.916230115660204
     },
     {
       "ticker": "SDS",
@@ -181,13 +181,13 @@
       "as_of": "2026-05-29",
       "inception": "2006-07-13",
       "rows": 5001,
-      "actual_etf_path": 0.003030917459802314,
+      "actual_etf_path": 0.003030917779287871,
       "perfect_leveraged_path": 0.0027326564979019636,
       "benchmark_path": 6.1017322019447615,
       "naive_leveraged_path": -9.203464403889523,
       "volatility_decay": 9.206197060387424,
-      "tracking_drag_gap": 0.00029826096190035045,
-      "actual_vs_naive_gap": 9.206495321349326
+      "tracking_drag_gap": 0.0002982612813859074,
+      "actual_vs_naive_gap": 9.206495321668811
     },
     {
       "ticker": "WLDU",
@@ -226,13 +226,13 @@
       "rate_source": "TWD_INTERBANK_OVERNIGHT",
       "as_of": "2026-05-29",
       "inception": "2014-10-31",
-      "rows": 2818,
+      "rows": 2794,
       "actual_etf_path": 40.231683168316984,
-      "perfect_leveraged_path": 25.70630494794313,
+      "perfect_leveraged_path": 25.63608468881718,
       "benchmark_path": 6.331900054378053,
       "naive_leveraged_path": 11.663800108756107,
-      "volatility_decay": 14.042504839187025,
-      "tracking_drag_gap": 14.525378220373852,
+      "volatility_decay": 13.972284580061075,
+      "tracking_drag_gap": 14.595598479499802,
       "actual_vs_naive_gap": 28.567883059560877
     },
     {
