@@ -202,9 +202,10 @@ def fetch_prices(
 def _fred_series(series_id: str) -> pd.Series:
     url = FRED_CSV_URL.format(series=series_id)
     session = requests.Session()
+    session.headers.update({"User-Agent": _TWSE_HEADERS["User-Agent"]})
     adapter = HTTPAdapter(max_retries=Retry(total=4, backoff_factor=2, allowed_methods=["GET"]))
     session.mount("https://", adapter)
-    resp = session.get(url, timeout=60)
+    resp = session.get(url, timeout=120)
     resp.raise_for_status()
     df = pd.read_csv(io.StringIO(resp.text))
     df.columns = [c.strip().lower() for c in df.columns]
