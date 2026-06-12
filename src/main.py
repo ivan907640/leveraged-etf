@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config.json"
 OUT_DIR = ROOT / "public" / "data"
 TICKERS_DIR = OUT_DIR / "tickers"
+
+TWSE_TICKERS = {"^TW50", "00631L.TW"}
+TWSE_PRICE_CACHE_PATH = OUT_DIR / "twse_price_cache.json"
 
 
 PER_DAY_FIELDS = [
@@ -93,6 +96,48 @@ def _summary_for(df: pd.DataFrame) -> dict:
     }
 
 
+def _load_twse_price_cache() -> tuple[dict[str, pd.Series], dict[str, date]]:
+    """Load cached raw TWSE prices and return (series_by_ticker, resume_since)."""
+    if not TWSE_PRICE_CACHE_PATH.exists():
+        return {}, {}
+    with TWSE_PRICE_CACHE_PATH.open() as f:
+        raw = json.load(f)
+    series: dict[str, pd.Series] = {}
+    since: dict[str, date] = {}
+    for ticker, entries in raw.items():
+        if not entries:
+            continue
+        s = pd.Series(
+            {pd.Timestamp(e["date"]): e["price"] for e in entries},
+            name=ticker,
+            dtype=float,
+        )
+        s.index.name = "date"
+        series[ticker] = s
+        last = s.index.max().date()
+        # Overlap by one month to catch late-arriving TWSE data
+        since[ticker] = date(last.year, last.month, 1)
+        print(f"[cache] {ticker}: {len(s)} cached rows, resuming from {since[ticker]}")
+    return series, since
+
+
+def _save_twse_price_cache(prices: pd.DataFrame) -> None:
+    """Persist raw TWSE price columns to the cache file."""
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out: dict[str, list] = {}
+    for ticker in TWSE_TICKERS:
+        if ticker not in prices.columns:
+            continue
+        s = prices[ticker].dropna()
+        out[ticker] = [
+            {"date": idx.date().isoformat(), "price": v}
+            for idx, v in s.items()
+        ]
+    with TWSE_PRICE_CACHE_PATH.open("w") as f:
+        json.dump(out, f, separators=(",", ":"))
+    print(f"[cache] wrote {TWSE_PRICE_CACHE_PATH}")
+
+
 def run() -> None:
     config = load_config()
     etfs = config["etfs"]
@@ -101,11 +146,31 @@ def run() -> None:
 
     tickers = sorted({e["ticker"] for e in etfs} | {e["benchmark"] for e in etfs})
 
-    print(f"[fetch] prices for {tickers} (period=max)")
-    prices = fetch_prices(tickers)
+    cached_series, cached_since = _load_twse_price_cache()
+
+    print(f"[fetch] prices for {tickers}")
+    new_prices = fetch_prices(tickers, cached_since=cached_since)
+
+    # Merge incremental TWSE fetch with cached history
+    if cached_series:
+        twse_frames = []
+        for ticker in TWSE_TICKERS:
+            if ticker in cached_series and ticker in new_prices.columns:
+                merged = pd.concat([cached_series[ticker], new_prices[ticker]]).groupby(level=0).last()
+                twse_frames.append(merged.rename(ticker))
+            elif ticker in new_prices.columns:
+                twse_frames.append(new_prices[ticker])
+        non_twse = new_prices[[c for c in new_prices.columns if c not in TWSE_TICKERS]]
+        prices = pd.concat([non_twse] + twse_frames, axis=1, sort=True)
+        prices.index.name = "date"
+    else:
+        prices = new_prices
+
     print(
         f"[fetch] price rows: {len(prices)} from {prices.index.min().date()} to {prices.index.max().date()}"
     )
+
+    _save_twse_price_cache(prices)
 
     rate_sources = sorted({e.get("rate_source", default_rate_source) for e in etfs})
     rates = {}

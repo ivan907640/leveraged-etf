@@ -1,16 +1,46 @@
 from __future__ import annotations
 
 import io
+import time
 from datetime import date
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import yfinance as yf
 
 FRED_CSV_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}"
 TAIWAN_OVERNIGHT_CSV_URL = "https://www.cbc.gov.tw/public/data/OpenData/WebF2.csv"
 TWSE_TAIWAN50_CSV_URL = "https://www.twse.com.tw/indicesReport/TAI50I?response=csv&date={date}"
 TWSE_STOCK_DAY_CSV_URL = "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=csv&date={date}&stockNo={stock_no}"
+
+_TWSE_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Referer": "https://www.twse.com.tw/",
+    "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8",
+}
+
+_TWSE_RETRY = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET"],
+    raise_on_status=False,
+)
+
+
+def _twse_session() -> requests.Session:
+    s = requests.Session()
+    s.headers.update(_TWSE_HEADERS)
+    adapter = HTTPAdapter(max_retries=_TWSE_RETRY)
+    s.mount("https://", adapter)
+    s.mount("http://", adapter)
+    return s
 MANUAL_SPLITS = {
     # Yuanta Taiwan 50 Daily 2x split 1 old unit into 22 new units.
     # yfinance adjusted close currently does not carry this ETF split reliably.
@@ -56,18 +86,22 @@ def _parse_roc_date(raw: str, month_start: date) -> pd.Timestamp | None:
         return None
 
 
-def _fetch_twse_taiwan50() -> pd.Series:
+def _fetch_twse_taiwan50(since: date | None = None) -> pd.Series:
+    start_year, start_month = (since.year, since.month) if since else (2014, 10)
     frames = []
-    for month_start in _month_starts(2014, 10):
+    session = _twse_session()
+    for month_start in _month_starts(start_year, start_month):
         url = TWSE_TAIWAN50_CSV_URL.format(date=month_start.strftime("%Y%m%d"))
-        resp = requests.get(url, timeout=30)
+        resp = session.get(url, timeout=30)
         resp.raise_for_status()
         text = resp.content.decode("big5", errors="ignore")
         lines = [line for line in text.splitlines() if line.strip()]
         if len(lines) < 3:
+            time.sleep(0.3)
             continue
         df = pd.read_csv(io.StringIO("\n".join(lines[1:])))
         if "日期" not in df.columns or "臺灣50指數" not in df.columns:
+            time.sleep(0.3)
             continue
         dates = df["日期"].map(lambda v: _parse_roc_date(v, month_start))
         values = pd.to_numeric(
@@ -76,6 +110,7 @@ def _fetch_twse_taiwan50() -> pd.Series:
         )
         s = pd.Series(values.to_numpy(), index=dates, name="^TW50").dropna()
         frames.append(s)
+        time.sleep(0.3)
     if not frames:
         raise RuntimeError("Price history missing for ^TW50")
     out = pd.concat(frames).sort_index()
@@ -92,22 +127,26 @@ def _apply_manual_splits(ticker: str, s: pd.Series) -> pd.Series:
     return out
 
 
-def _fetch_twse_stock_close(ticker: str, start_year: int, start_month: int) -> pd.Series:
+def _fetch_twse_stock_close(ticker: str, since: date | None = None) -> pd.Series:
     stock_no = ticker.split(".")[0]
+    start_year, start_month = (since.year, since.month) if since else (2014, 10)
     frames = []
+    session = _twse_session()
     for month_start in _month_starts(start_year, start_month):
         url = TWSE_STOCK_DAY_CSV_URL.format(
             date=month_start.strftime("%Y%m%d"),
             stock_no=stock_no,
         )
-        resp = requests.get(url, timeout=30)
+        resp = session.get(url, timeout=30)
         resp.raise_for_status()
         text = resp.content.decode("big5", errors="ignore")
         lines = [line for line in text.splitlines() if line.strip()]
         if len(lines) < 3:
+            time.sleep(0.3)
             continue
         df = pd.read_csv(io.StringIO("\n".join(lines[1:])))
         if "日期" not in df.columns or "收盤價" not in df.columns:
+            time.sleep(0.3)
             continue
         dates = df["日期"].map(lambda v: _parse_roc_date(v, month_start))
         values = pd.to_numeric(
@@ -116,6 +155,7 @@ def _fetch_twse_stock_close(ticker: str, start_year: int, start_month: int) -> p
         )
         s = pd.Series(values.to_numpy(), index=dates, name=ticker).dropna()
         frames.append(s)
+        time.sleep(0.3)
     if not frames:
         raise RuntimeError(f"Price history missing for {ticker}")
     out = pd.concat(frames).sort_index()
@@ -126,15 +166,24 @@ def _fetch_twse_stock_close(ticker: str, start_year: int, start_month: int) -> p
     return _apply_manual_splits(ticker, out)
 
 
-def fetch_prices(tickers: list[str]) -> pd.DataFrame:
-    """Pull ETF adjusted close and official index close since inception."""
+def fetch_prices(
+    tickers: list[str],
+    cached_since: dict[str, date] | None = None,
+) -> pd.DataFrame:
+    """Pull ETF adjusted close and official index close since inception.
+
+    cached_since maps ticker -> last known date; TWSE tickers will only fetch
+    months from that date onward and the result must be merged with cached data
+    by the caller.
+    """
+    cached_since = cached_since or {}
     frames = []
     for t in tickers:
         if t == "^TW50":
-            frames.append(_fetch_twse_taiwan50().rename(t))
+            frames.append(_fetch_twse_taiwan50(since=cached_since.get(t)).rename(t))
             continue
         if t == "00631L.TW":
-            frames.append(_fetch_twse_stock_close(t, 2014, 10).rename(t))
+            frames.append(_fetch_twse_stock_close(t, since=cached_since.get(t)).rename(t))
             continue
         df = yf.Ticker(t).history(period="max", auto_adjust=False, actions=False)
         if df.empty:
@@ -152,7 +201,10 @@ def fetch_prices(tickers: list[str]) -> pd.DataFrame:
 
 def _fred_series(series_id: str) -> pd.Series:
     url = FRED_CSV_URL.format(series=series_id)
-    resp = requests.get(url, timeout=30)
+    session = requests.Session()
+    adapter = HTTPAdapter(max_retries=Retry(total=4, backoff_factor=2, allowed_methods=["GET"]))
+    session.mount("https://", adapter)
+    resp = session.get(url, timeout=60)
     resp.raise_for_status()
     df = pd.read_csv(io.StringIO(resp.text))
     df.columns = [c.strip().lower() for c in df.columns]
@@ -169,7 +221,9 @@ def fetch_rate(source: str = "SOFR_BLENDED") -> pd.Series:
     """SOFR for 2018-04-03 onward, Fed Funds (DFF) for earlier history."""
     src = source.upper()
     if src == "TWD_INTERBANK_OVERNIGHT":
-        df = pd.read_csv(TAIWAN_OVERNIGHT_CSV_URL, encoding="big5")
+        resp = requests.get(TAIWAN_OVERNIGHT_CSV_URL, timeout=60)
+        resp.raise_for_status()
+        df = pd.read_csv(io.StringIO(resp.content.decode("big5", errors="ignore")))
         date_col = "日期"
         rate_col = "利率[%]"
         df["date"] = pd.to_datetime(df[date_col], errors="coerce").dt.normalize()
